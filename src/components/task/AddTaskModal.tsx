@@ -5,15 +5,17 @@ import EmojiPicker, { EmojiStyle } from 'emoji-picker-react';
 
 interface AddTaskModalProps {
   onClose: () => void;
-  onAdd: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isPreset' | 'isHidden'>) => void;
+  onAdd?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isPreset' | 'isHidden'>) => void;
+  onUpdate?: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isPreset'>>) => void;
   initialCategory: Task['category'];
+  editingTask?: Task;
 }
 
-export function AddTaskModal({ onClose, onAdd, initialCategory }: AddTaskModalProps) {
-  const [newTaskName, setNewTaskName] = useState('');
-  const [newTaskIcon, setNewTaskIcon] = useState('📝');
-  const [newTaskColor, setNewTaskColor] = useState('#3b82f6');
-  const [activeCategory, setActiveCategory] = useState<Task['category']>(initialCategory);
+export function AddTaskModal({ onClose, onAdd, onUpdate, initialCategory, editingTask }: AddTaskModalProps) {
+  const [newTaskName, setNewTaskName] = useState(editingTask?.name || '');
+  const [newTaskIcon, setNewTaskIcon] = useState(editingTask?.icon || '📝');
+  const [newTaskColor, setNewTaskColor] = useState(editingTask?.color || '#3b82f6');
+  const [activeCategory, setActiveCategory] = useState<Task['category']>(editingTask?.category || initialCategory);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
@@ -36,12 +38,21 @@ export function AddTaskModal({ onClose, onAdd, initialCategory }: AddTaskModalPr
 
   const handleAdd = () => {
     if (!newTaskName.trim()) return;
-    onAdd({
-      name: newTaskName.trim().slice(0, 10),
-      icon: newTaskIcon,
-      color: newTaskColor,
-      category: activeCategory
-    });
+    if (editingTask && onUpdate) {
+      onUpdate(editingTask.id, {
+        name: newTaskName.trim().slice(0, 10),
+        icon: newTaskIcon,
+        color: newTaskColor,
+        category: activeCategory
+      });
+    } else if (onAdd) {
+      onAdd({
+        name: newTaskName.trim().slice(0, 10),
+        icon: newTaskIcon,
+        color: newTaskColor,
+        category: activeCategory
+      });
+    }
     onClose();
   };
 
@@ -54,7 +65,7 @@ export function AddTaskModal({ onClose, onAdd, initialCategory }: AddTaskModalPr
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col">
         <div className="p-4 border-b flex items-center justify-between bg-blue-50 rounded-t-2xl">
-          <h2 className="text-xl font-bold text-blue-800">新增任务</h2>
+          <h2 className="text-xl font-bold text-blue-800">{editingTask ? '编辑任务' : '新增任务'}</h2>
           <button onClick={onClose} className="p-2 hover:bg-blue-100 rounded-full text-blue-600 transition-colors">
             <X size={20} />
           </button>
@@ -144,7 +155,7 @@ export function AddTaskModal({ onClose, onAdd, initialCategory }: AddTaskModalPr
             disabled={!newTaskName.trim()}
             className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
-            确认添加
+            {editingTask ? '保存修改' : '确认添加'}
           </button>
         </div>
       </div>

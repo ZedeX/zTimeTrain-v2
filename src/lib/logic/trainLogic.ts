@@ -1,10 +1,18 @@
 import { Carriage } from '../types';
 import { generateId, addMinutes, subtractMinutes } from '../utils';
 
+import dayjs from 'dayjs';
+
 export function createInitialCarriages(date: string): Carriage[] {
   const carriages: Carriage[] = [];
-  let currentStartTime = '17:00';
-  for (let i = 0; i < 10; i++) {
+  const isWeekend = dayjs(date).day() === 0 || dayjs(date).day() === 6;
+  const startHour = isWeekend ? 8 : 17;
+  const endHour = 22;
+  
+  let currentStartTime = `${startHour.toString().padStart(2, '0')}:00`;
+  const totalCarriages = (endHour - startHour) * 2;
+
+  for (let i = 0; i < totalCarriages; i++) {
     const endTime = addMinutes(currentStartTime, 30);
     carriages.push({
       id: generateId(),
@@ -67,10 +75,63 @@ export function addCarriageAtEnd(carriages: Carriage[], date: string): Carriage[
 }
 
 export function insertCarriageAt(carriages: Carriage[], index: number, date: string, taskId: string | null = null): Carriage[] {
-  if (carriages.length >= 48) throw new Error('已达到单日最大车厢数量限制');
   if (index < 0 || index > carriages.length) return carriages;
   
   const newCarriages = [...carriages];
+  
+  if (carriages.length >= 48) {
+    // Check if all carriages from index to end have tasks
+    let allOccupied = true;
+    for (let i = index; i < carriages.length; i++) {
+      if (!carriages[i].taskId) {
+        allOccupied = false;
+        break;
+      }
+    }
+    
+    if (allOccupied) {
+      throw new Error('当天任务已占满全部车厢，无法新增任务');
+    }
+
+    // If full, we can't add a new carriage. We just shift tasks to the right.
+    // Find the first empty carriage after index
+    let emptyIndex = -1;
+    for (let i = index; i < newCarriages.length; i++) {
+      if (!newCarriages[i].taskId) {
+        emptyIndex = i;
+        break;
+      }
+    }
+
+    if (emptyIndex !== -1) {
+      for (let i = emptyIndex; i > index; i--) {
+        newCarriages[i] = {
+          ...newCarriages[i],
+          taskId: newCarriages[i - 1].taskId,
+          status: newCarriages[i - 1].status,
+          updatedAt: Date.now(),
+        };
+      }
+    } else {
+      for (let i = newCarriages.length - 1; i > index; i--) {
+        newCarriages[i] = {
+          ...newCarriages[i],
+          taskId: newCarriages[i - 1].taskId,
+          status: newCarriages[i - 1].status,
+          updatedAt: Date.now(),
+        };
+      }
+    }
+
+    newCarriages[index] = {
+      ...newCarriages[index],
+      taskId,
+      status: 'pending',
+      updatedAt: Date.now(),
+    };
+    return newCarriages;
+  }
+
   const prevCarriage = index > 0 ? newCarriages[index - 1] : null;
   
   let startTime = prevCarriage ? prevCarriage.endTime : '00:00';
@@ -112,7 +173,56 @@ export function insertCarriageAt(carriages: Carriage[], index: number, date: str
   if (exceedForward) {
     // We need to push backward instead
     if (newCarriages[0].startTime === '00:00') {
-      throw new Error('无法分配更多时间，单日时间已满');
+      // If we can't push backward, we shift tasks instead of adding a carriage
+      let allOccupied = true;
+      for (let i = index; i < carriages.length; i++) {
+        if (!carriages[i].taskId) {
+          allOccupied = false;
+          break;
+        }
+      }
+      
+      if (allOccupied) {
+        throw new Error('当天任务已占满全部车厢，无法新增任务');
+      }
+
+      const shiftedCarriages = [...carriages];
+      
+      let emptyIndex = -1;
+      for (let i = index; i < shiftedCarriages.length; i++) {
+        if (!shiftedCarriages[i].taskId) {
+          emptyIndex = i;
+          break;
+        }
+      }
+
+      if (emptyIndex !== -1) {
+        for (let i = emptyIndex; i > index; i--) {
+          shiftedCarriages[i] = {
+            ...shiftedCarriages[i],
+            taskId: shiftedCarriages[i - 1].taskId,
+            status: shiftedCarriages[i - 1].status,
+            updatedAt: Date.now(),
+          };
+        }
+      } else {
+        for (let i = shiftedCarriages.length - 1; i > index; i--) {
+          shiftedCarriages[i] = {
+            ...shiftedCarriages[i],
+            taskId: shiftedCarriages[i - 1].taskId,
+            status: shiftedCarriages[i - 1].status,
+            updatedAt: Date.now(),
+          };
+        }
+      }
+
+      shiftedCarriages[index] = {
+        ...shiftedCarriages[index],
+        taskId,
+        status: 'pending',
+        updatedAt: Date.now(),
+      };
+      return shiftedCarriages;
     }
     
     // Shift everything backward by 30 mins

@@ -29,33 +29,26 @@ export function TaskCard({ task, onUpdate, onHide, onRemove }: TaskCardProps) {
         isDragging && "opacity-50"
       )}
     >
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         {!task.isPreset && (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              const name = prompt('新名称:', task.name);
-              if (name) onUpdate(task.id, { name: name.slice(0, 10) });
-            }}
-            className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"
-          >
-            <Edit2 size={14} />
-          </button>
-        )}
-        {task.isPreset ? (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onHide(); }}
-            className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"
-          >
-            <EyeOff size={14} />
-          </button>
-        ) : (
-          <button 
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
-          >
-            <Trash2 size={14} />
-          </button>
+          <>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                // We will handle edit in TaskLibrary
+                onUpdate(task.id, { _triggerEdit: true } as any);
+              }}
+              className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"
+            >
+              <Edit2 size={14} />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onRemove(); }}
+              className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+            >
+              <Trash2 size={14} />
+            </button>
+          </>
         )}
       </div>
 

@@ -15,6 +15,7 @@ interface TaskLibraryProps {
 export function TaskLibrary({ tasks, onAdd, onUpdate, onHide, onRemove }: TaskLibraryProps) {
   const [activeCategory, setActiveCategory] = useState<Task['category']>('study');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const categories: { id: Task['category']; label: string }[] = [
     { id: 'study', label: '学习类' },
@@ -24,6 +25,15 @@ export function TaskLibrary({ tasks, onAdd, onUpdate, onHide, onRemove }: TaskLi
   ];
 
   const visibleTasks = tasks.filter(t => t.category === activeCategory && !t.isHidden);
+
+  const handleUpdate = (id: string, updates: any) => {
+    if (updates._triggerEdit) {
+      const task = tasks.find(t => t.id === id);
+      if (task) setEditingTask(task);
+    } else {
+      onUpdate(id, updates);
+    }
+  };
 
   return (
     <div className="flex-1 bg-white border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex flex-col h-1/2">
@@ -57,7 +67,7 @@ export function TaskLibrary({ tasks, onAdd, onUpdate, onHide, onRemove }: TaskLi
             <TaskCard 
               key={task.id} 
               task={task} 
-              onUpdate={onUpdate}
+              onUpdate={handleUpdate}
               onHide={() => onHide(task.id)}
               onRemove={() => onRemove(task.id)}
             />
@@ -65,11 +75,16 @@ export function TaskLibrary({ tasks, onAdd, onUpdate, onHide, onRemove }: TaskLi
         </div>
       </div>
 
-      {isAdding && (
+      {(isAdding || editingTask) && (
         <AddTaskModal 
-          onClose={() => setIsAdding(false)} 
+          onClose={() => {
+            setIsAdding(false);
+            setEditingTask(null);
+          }} 
           onAdd={onAdd} 
+          onUpdate={onUpdate}
           initialCategory={activeCategory} 
+          editingTask={editingTask || undefined}
         />
       )}
     </div>

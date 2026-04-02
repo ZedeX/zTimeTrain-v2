@@ -8,7 +8,12 @@ interface AchievementUnlockedModalProps {
 }
 
 export function AchievementUnlockedModal({ achievement, onClose }: AchievementUnlockedModalProps) {
+  const hasPlayed = React.useRef(false);
+
   useEffect(() => {
+    if (hasPlayed.current) return;
+    hasPlayed.current = true;
+
     // Play sound
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(`解锁成就：${achievement.name}`);

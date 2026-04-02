@@ -15,12 +15,17 @@ export const PRESET_TASKS: Task[] = [
 ];
 
 export const TRAIN_LEVELS: LevelConfig[] = [
-  { level: 1, name: "蒸汽机车", icon: "🚂", requiredPoints: 0 },
-  { level: 2, name: "内燃机车", icon: "🚃", requiredPoints: 100 },
-  { level: 3, name: "电力机车", icon: "🚄", requiredPoints: 500 },
-  { level: 4, name: "高铁", icon: "🚅", requiredPoints: 1500 },
-  { level: 5, name: "磁悬浮", icon: "🚆", requiredPoints: 4000 },
-  { level: 6, name: "时光列车", icon: "✨", requiredPoints: 10000 },
+  { level: 1, name: "手推车", icon: "🛒", requiredPoints: 0 },
+  { level: 2, name: "自行车", icon: "🚲", requiredPoints: 50 },
+  { level: 3, name: "马车", icon: "🐎", requiredPoints: 150 },
+  { level: 4, name: "蒸汽机车", icon: "🚂", requiredPoints: 300 },
+  { level: 5, name: "内燃机车", icon: "🚃", requiredPoints: 600 },
+  { level: 6, name: "电力机车", icon: "🚄", requiredPoints: 1200 },
+  { level: 7, name: "高铁", icon: "🚅", requiredPoints: 2500 },
+  { level: 8, name: "磁悬浮", icon: "🚆", requiredPoints: 5000 },
+  { level: 9, name: "火箭", icon: "🚀", requiredPoints: 10000 },
+  { level: 10, name: "飞船", icon: "🛸", requiredPoints: 20000 },
+  { level: 11, name: "时光列车", icon: "✨", requiredPoints: 50000 },
 ];
 
 export const PRESET_ACHIEVEMENTS: Achievement[] = [
@@ -29,6 +34,7 @@ export const PRESET_ACHIEVEMENTS: Achievement[] = [
   { id: 'carriages_50', name: '时间小能手', description: '累计完成50个车厢', icon: '💪', category: 'task', rarity: 'rare', isHidden: false, condition: { type: 'complete_carriages', target: 50 }, rewards: { points: 250 }, createdAt: Date.now() },
   { id: 'carriages_100', name: '时间大师', description: '累计完成100个车厢', icon: '👑', category: 'task', rarity: 'epic', isHidden: false, condition: { type: 'complete_carriages', target: 100 }, rewards: { points: 500 }, createdAt: Date.now() },
   { id: 'carriages_500', name: '时间领主', description: '累计完成500个车厢', icon: '🌌', category: 'task', rarity: 'legendary', isHidden: false, condition: { type: 'complete_carriages', target: 500 }, rewards: { points: 2000 }, createdAt: Date.now() },
+  { id: 'carriages_1000', name: '时间之神', description: '累计完成1000个车厢', icon: '⚡', category: 'task', rarity: 'legendary', isHidden: false, condition: { type: 'complete_carriages', target: 1000 }, rewards: { points: 5000 }, createdAt: Date.now() },
   { id: 'streak_3', name: '三天热度？', description: '连续完成3天', icon: '🔥', category: 'streak', rarity: 'common', isHidden: false, condition: { type: 'streak_days', target: 3 }, rewards: { points: 50 }, createdAt: Date.now() },
   { id: 'streak_7', name: '周更达人', description: '连续完成7天', icon: '📅', category: 'streak', rarity: 'rare', isHidden: false, condition: { type: 'streak_days', target: 7 }, rewards: { points: 150 }, createdAt: Date.now() },
   { id: 'streak_30', name: '月度冠军', description: '连续完成30天', icon: '🏆', category: 'streak', rarity: 'epic', isHidden: false, condition: { type: 'streak_days', target: 30 }, rewards: { points: 1000 }, createdAt: Date.now() },

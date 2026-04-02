@@ -57,10 +57,41 @@ export function Header({
     reader.onload = (event) => {
       try {
         const importedState = JSON.parse(event.target?.result as string);
-        updateAppState(() => importedState);
+        
+        // Basic validation
+        if (!importedState || typeof importedState !== 'object') {
+          throw new Error('Invalid JSON structure');
+        }
+        
+        // Ensure required fields exist
+        if (!Array.isArray(importedState.tasks) || !Array.isArray(importedState.carriages)) {
+          throw new Error('Missing required arrays');
+        }
+
+        // Validate tasks
+        const validTasks = importedState.tasks.filter((t: any) => 
+          t && typeof t.id === 'string' && typeof t.name === 'string' && typeof t.icon === 'string'
+        );
+
+        // Validate carriages
+        const validCarriages = importedState.carriages.filter((c: any) => 
+          c && typeof c.id === 'string' && typeof c.date === 'string' && typeof c.startTime === 'string' && typeof c.endTime === 'string'
+        );
+
+        const safeState = {
+          ...state,
+          ...importedState,
+          tasks: validTasks,
+          carriages: validCarriages,
+          points: typeof importedState.points === 'number' ? importedState.points : state.points,
+          currentDate: typeof importedState.currentDate === 'string' ? importedState.currentDate : state.currentDate,
+        };
+
+        updateAppState(() => safeState);
         toast.success('导入成功！');
       } catch (err) {
-        toast.error('导入失败：文件格式不正确');
+        console.error(err);
+        toast.error('导入失败：文件格式不正确或数据损坏');
       }
     };
     reader.readAsText(file);
@@ -99,30 +130,38 @@ export function Header({
           🚂 TimeTrain
         </h1>
         
-        <div className="flex items-center bg-gray-50 rounded-full p-1 border shadow-sm">
+        <div className="flex items-center bg-white rounded-full p-1 border border-blue-100 shadow-sm">
           <button 
             onClick={handlePrevDay}
-            className="p-2 sm:p-3 hover:bg-white rounded-full transition-colors"
+            className="p-2 sm:p-3 hover:bg-blue-50 text-blue-500 rounded-full transition-colors"
           >
-            <span className="text-gray-600 font-bold">&lt;</span>
+            <span className="font-bold">&lt;</span>
           </button>
-          <div className="flex items-center gap-2 px-2 sm:px-4 min-w-[120px] sm:min-w-[160px] justify-center relative">
-            <Calendar size={20} className="text-blue-500 hidden sm:block" />
+          <div 
+            className="flex items-center gap-2 px-2 sm:px-4 min-w-[120px] sm:min-w-[160px] justify-center relative cursor-pointer hover:bg-blue-50 rounded-lg transition-colors h-full py-2"
+            onClick={(e) => {
+              const input = e.currentTarget.querySelector('input');
+              if (input && 'showPicker' in HTMLInputElement.prototype) {
+                try { input.showPicker(); } catch (e) {}
+              }
+            }}
+          >
+            <Calendar size={20} className="text-blue-500 hidden sm:block pointer-events-none" />
             <input 
               type="date" 
               value={state.currentDate} 
               onChange={handleDateChange}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
             />
-            <span className="font-bold text-gray-700 text-base sm:text-lg whitespace-nowrap pointer-events-none">
+            <span className="font-bold text-blue-700 text-base sm:text-lg whitespace-nowrap pointer-events-none">
               {dayjs(state.currentDate).format('MM月DD日')}
             </span>
           </div>
           <button 
             onClick={handleNextDay}
-            className="p-2 sm:p-3 hover:bg-white rounded-full transition-colors"
+            className="p-2 sm:p-3 hover:bg-blue-50 text-blue-500 rounded-full transition-colors"
           >
-            <span className="text-gray-600 font-bold">&gt;</span>
+            <span className="font-bold">&gt;</span>
           </button>
         </div>
 

@@ -9,7 +9,12 @@ interface LevelUpModalProps {
 }
 
 export function LevelUpModal({ level, levelName, levelIcon, onClose }: LevelUpModalProps) {
+  const hasPlayed = React.useRef(false);
+
   useEffect(() => {
+    if (hasPlayed.current) return;
+    hasPlayed.current = true;
+
     // Play sound
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(`恭喜升级到 ${levelName}`);

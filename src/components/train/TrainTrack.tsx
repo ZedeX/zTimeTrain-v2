@@ -32,6 +32,9 @@ export function TrainTrack({
 }: TrainTrackProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm'));
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -44,12 +47,42 @@ export function TrainTrack({
     id: 'train-track',
   });
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!trackRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - trackRef.current.offsetLeft);
+    setScrollLeft(trackRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !trackRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - trackRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    trackRef.current.scrollLeft = scrollLeft - walk;
+  };
+
   const canAddStart = carriages.length === 0 || carriages[0].startTime !== '00:00';
   const canAddEnd = carriages.length === 0 || (carriages[carriages.length - 1].endTime !== '24:00' && carriages[carriages.length - 1].endTime !== '00:00');
   const isFull = carriages.length >= 48;
 
   return (
-    <div className="flex-1 overflow-x-auto bg-blue-50/50 relative py-12 px-8 custom-scrollbar">
+    <div 
+      ref={trackRef}
+      className={cn("flex-1 overflow-x-auto bg-blue-50/50 relative py-12 px-8 custom-scrollbar", isDragging ? "cursor-grabbing" : "cursor-grab")}
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+    >
       <div className="absolute top-1/2 left-0 right-0 h-4 bg-gray-300 -translate-y-1/2 z-0 rounded-full mx-4 shadow-inner"></div>
       
       <div 
