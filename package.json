@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && tsc --project tsconfig.server.json",
-    "preview": "vite preview",
+    "preview": "npm run build && wrangler dev",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -36,6 +37,7 @@
     "vite": "^6.2.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.31.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/canvas-confetti": "^1.9.0",
     "@types/cors": "^2.8.19",
@@ -46,6 +48,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "wrangler": "^4.80.0"
   }
 }
