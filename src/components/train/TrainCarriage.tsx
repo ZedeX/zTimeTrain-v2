@@ -38,13 +38,16 @@ export function TrainCarriage({
     <div 
       ref={setNodeRef}
       className={cn(
-        "group relative flex flex-col items-center w-32 h-48 rounded-xl shadow-lg border-2 transition-all flex-shrink-0 bg-white",
+        "group relative flex flex-col items-center w-32 h-48 rounded-xl shadow-lg border-2 transition-all flex-shrink-0 bg-white overflow-hidden",
         isOver ? "border-blue-500 scale-105" : "border-transparent",
         carriage.status === 'done' ? "bg-green-50 border-green-200" : 
         carriage.status === 'failed' ? "bg-red-50 border-red-200" : 
         !task ? "bg-gray-50 border-dashed border-gray-300" : "bg-white border-blue-100"
       )}
     >
+      {isOver && (
+        <div className="absolute inset-0 bg-blue-400/20 animate-ping rounded-xl pointer-events-none"></div>
+      )}
       {/* Time Indicator */}
       {isCurrentTime && (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center">
@@ -61,7 +64,7 @@ export function TrainCarriage({
       {/* Delete Button */}
       <button 
         onClick={onRemove}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
+        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-10"
       >
         <Trash2 size={14} />
       </button>

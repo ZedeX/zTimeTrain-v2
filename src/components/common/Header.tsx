@@ -8,6 +8,7 @@ import { useShare } from '../../hooks/useShare';
 import { Undo, Calendar, LogOut, Download, Upload, Share2, Trophy } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import dayjs from 'dayjs';
+import toast from 'react-hot-toast';
 import { LevelModal } from './LevelModal';
 import { AchievementModal } from './AchievementModal';
 
@@ -19,7 +20,8 @@ export function Header({
   undo,
   canUndo,
   carriages,
-  onToggleCalendar
+  onToggleCalendar,
+  onLogin
 }: any) {
   const { currentPoints } = usePoints(state, updateAppState);
   const { currentLevel, levelConfig } = useLevel(state, updateAppState);
@@ -45,6 +47,7 @@ export function Header({
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+    toast.success('导出成功！');
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,9 +58,9 @@ export function Header({
       try {
         const importedState = JSON.parse(event.target?.result as string);
         updateAppState(() => importedState);
-        alert('导入成功！');
+        toast.success('导入成功！');
       } catch (err) {
-        alert('导入失败：文件格式不正确');
+        toast.error('导入失败：文件格式不正确');
       }
     };
     reader.readAsText(file);
@@ -181,9 +184,15 @@ export function Header({
           <button onClick={handleShare} className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
             <Share2 size={20} />
           </button>
-          <button onClick={logout} className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors">
-            <LogOut size={20} />
-          </button>
+          {state.userId ? (
+            <button onClick={logout} className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors" title="登出">
+              <LogOut size={20} />
+            </button>
+          ) : (
+            <button onClick={onLogin} className="px-3 py-1.5 bg-blue-500 text-white hover:bg-blue-600 rounded-full text-sm font-bold transition-colors shadow-sm">
+              登录/注册
+            </button>
+          )}
         </div>
       </div>
 

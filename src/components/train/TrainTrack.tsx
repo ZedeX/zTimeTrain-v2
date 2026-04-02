@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Carriage, Task } from '../../lib/types';
 import { TrainCarriage } from './TrainCarriage';
+import { InsertDropZone } from './InsertDropZone';
 import { Plus } from 'lucide-react';
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
@@ -9,6 +10,7 @@ import { cn } from '../../lib/utils';
 interface TrainTrackProps {
   carriages: Carriage[];
   tasks: Task[];
+  levelIcon: string;
   onAddStart: () => void;
   onAddEnd: () => void;
   onInsertAt: (index: number, taskId: string | null) => void;
@@ -20,6 +22,7 @@ interface TrainTrackProps {
 export function TrainTrack({
   carriages,
   tasks,
+  levelIcon,
   onAddStart,
   onAddEnd,
   onInsertAt,
@@ -53,6 +56,16 @@ export function TrainTrack({
         ref={setNodeRef}
         className="flex items-center gap-4 min-w-max relative z-10"
       >
+        <div className="flex items-center justify-center w-24 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-xl border-4 border-blue-800 flex-shrink-0 relative mr-2">
+          <div className="absolute -top-6 w-12 h-8 bg-gray-800 rounded-t-lg"></div>
+          <div className="absolute -top-10 w-4 h-4 bg-gray-400 rounded-full animate-bounce"></div>
+          <span className="text-5xl">{levelIcon}</span>
+          <div className="absolute bottom-2 flex gap-2">
+            <div className="w-6 h-6 bg-gray-800 rounded-full border-2 border-gray-400"></div>
+            <div className="w-6 h-6 bg-gray-800 rounded-full border-2 border-gray-400"></div>
+          </div>
+        </div>
+
         <button 
           onClick={onAddStart}
           disabled={!canAddStart || isFull}
@@ -81,17 +94,11 @@ export function TrainTrack({
               />
               
               {index < carriages.length - 1 && (
-                <div className="relative group flex items-center justify-center w-8 h-full">
-                  <div className="w-full h-2 bg-gray-400"></div>
-                  {!isFull && (
-                    <button 
-                      onClick={() => onInsertAt(index + 1, null)}
-                      className="absolute w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  )}
-                </div>
+                <InsertDropZone 
+                  index={index + 1} 
+                  isFull={isFull} 
+                  onInsertAt={onInsertAt} 
+                />
               )}
             </React.Fragment>
           );

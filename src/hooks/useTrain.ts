@@ -57,7 +57,7 @@ export function useTrain(
     try {
       updateCarriages(addCarriageAtStart(currentCarriages, currentDate), 'addCarriage');
     } catch (e: any) {
-      alert(e.message);
+      import('react-hot-toast').then(m => m.default.error(e.message));
     }
   }, [currentCarriages, currentDate, updateCarriages]);
 
@@ -65,7 +65,7 @@ export function useTrain(
     try {
       updateCarriages(addCarriageAtEnd(currentCarriages, currentDate), 'addCarriage');
     } catch (e: any) {
-      alert(e.message);
+      import('react-hot-toast').then(m => m.default.error(e.message));
     }
   }, [currentCarriages, currentDate, updateCarriages]);
 
@@ -73,7 +73,7 @@ export function useTrain(
     try {
       updateCarriages(insertCarriageAt(currentCarriages, index, currentDate, taskId), 'addCarriage');
     } catch (e: any) {
-      alert(e.message);
+      import('react-hot-toast').then(m => m.default.error(e.message));
     }
   }, [currentCarriages, currentDate, updateCarriages]);
 
@@ -81,7 +81,7 @@ export function useTrain(
     try {
       updateCarriages(deleteCarriage(currentCarriages, id), 'deleteCarriage');
     } catch (e: any) {
-      alert(e.message);
+      import('react-hot-toast').then(m => m.default.error(e.message));
     }
   }, [currentCarriages, updateCarriages]);
 

@@ -13,6 +13,11 @@ import { TaskLibrary } from './components/task/TaskLibrary';
 import confetti from 'canvas-confetti';
 import { useEventBus } from './hooks/useEventBus';
 
+import { AuthModal } from './components/common/AuthModal';
+import { LevelUpModal } from './components/common/LevelUpModal';
+import { AchievementUnlockedModal } from './components/common/AchievementUnlockedModal';
+import { Toaster } from 'react-hot-toast';
+
 export default function App() {
   const { state, updateAppState, login, logout, setDate, emit } = useApp();
   const { subscribe, EVENTS } = useEventBus();
@@ -20,7 +25,7 @@ export default function App() {
   const { tasks, add, update, hide, remove: removeTask } = useTask(state, updateAppState);
   
   const { earnPointsForCarriage } = usePoints(state, updateAppState);
-  const { handleEvent } = useAchievements(state, updateAppState);
+  const { handleEvent, newAchievements, markAsRead, allAchievements } = useAchievements(state, updateAppState);
   const { updateForPoints, levelConfig } = useLevel(state, updateAppState);
 
   const sensors = useSensors(
@@ -38,19 +43,41 @@ export default function App() {
   );
 
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const prevDoneRef = useRef(false);
+  const prevLevelRef = useRef(levelConfig?.level || 1);
+
+  const currentNewAchievement = newAchievements.length > 0 
+    ? allAchievements.find(a => a.id === newAchievements[0].achievementId) 
+    : null;
 
   useEffect(() => {
-    if (!state.userId) {
-      login('user-' + Math.random().toString(36).substr(2, 9));
+    if (levelConfig && levelConfig.level > prevLevelRef.current) {
+      setShowLevelUpModal(true);
     }
-  }, [state.userId, login]);
+    if (levelConfig) {
+      prevLevelRef.current = levelConfig.level;
+    }
+  }, [levelConfig]);
+
+  // Removed auto-login
 
   useEffect(() => {
     const handleCarriageComplete = (data: any) => {
       earnPointsForCarriage(data.carriageId);
       handleEvent('carriage:complete', data);
+      
+      // Play random success sound
+      if ('speechSynthesis' in window) {
+        const phrases = ['成功', '干得好', '完成', '太棒了', '继续加油'];
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        const utterance = new SpeechSynthesisUtterance(randomPhrase);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 1.2;
+        window.speechSynthesis.speak(utterance);
+      }
     };
 
     const unsubscribe = subscribe(EVENTS.CARRIAGE_COMPLETE, handleCarriageComplete);
@@ -82,12 +109,30 @@ export default function App() {
     const isAllDone = assignedCarriages.length > 0 && assignedCarriages.length === doneCarriages.length;
     
     if (isAllDone && !prevDoneRef.current) {
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
-      });
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
     }
     prevDoneRef.current = isAllDone;
   }, [carriages]);
@@ -101,24 +146,34 @@ export default function App() {
     const { active, over } = event;
     if (!over) return;
 
+    if (!state.userId) {
+      setShowAuthModal(true);
+      return;
+    }
+
     const activeData = active.data.current;
     const overData = over.data.current;
 
     if (activeData?.type === 'task' && overData?.type === 'carriage') {
       assignTask(overData.carriageId, activeData.taskId);
+    } else if (activeData?.type === 'task' && overData?.type === 'insert-between') {
+      insertAt(overData.index, activeData.taskId);
     } else if (activeData?.type === 'task-in-carriage' && overData?.type === 'carriage') {
       if (activeData.carriageId !== overData.carriageId) {
         moveTask(activeData.carriageId, overData.carriageId, activeData.taskId);
       }
+    } else if (activeData?.type === 'task-in-carriage' && overData?.type === 'insert-between') {
+      // First remove from old carriage, then insert new carriage
+      assignTask(activeData.carriageId, null);
+      insertAt(overData.index, activeData.taskId);
     } else if (activeData?.type === 'task-in-carriage' && over.id === 'train-track') {
       assignTask(activeData.carriageId, null);
     }
   };
 
-  if (!state.userId) return <div>Loading...</div>;
-
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden font-sans">
+      <Toaster position="top-center" />
       <Header 
         state={state} 
         updateAppState={updateAppState} 
@@ -128,7 +183,31 @@ export default function App() {
         canUndo={canUndo}
         carriages={carriages}
         onToggleCalendar={() => setShowCalendar(!showCalendar)}
+        onLogin={() => setShowAuthModal(true)}
       />
+      
+      {showAuthModal && (
+        <AuthModal 
+          onClose={() => setShowAuthModal(false)}
+          onLogin={login}
+        />
+      )}
+
+      {showLevelUpModal && levelConfig && (
+        <LevelUpModal 
+          level={levelConfig.level}
+          levelName={levelConfig.name}
+          levelIcon={levelConfig.icon}
+          onClose={() => setShowLevelUpModal(false)}
+        />
+      )}
+
+      {currentNewAchievement && (
+        <AchievementUnlockedModal 
+          achievement={currentNewAchievement}
+          onClose={() => markAsRead(currentNewAchievement.id)}
+        />
+      )}
       
       {showCalendar ? (
         <div className="flex-1 overflow-auto p-8">
@@ -164,6 +243,7 @@ export default function App() {
             <TrainTrack 
               carriages={carriages}
               tasks={tasks}
+              levelIcon={levelConfig?.icon || '🚂'}
               onAddStart={addStart}
               onAddEnd={addEnd}
               onInsertAt={insertAt}
