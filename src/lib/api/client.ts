@@ -1,4 +1,10 @@
-const API_BASE = '/api';
+// Determine API base URL based on environment
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE = isLocalhost
+  ? '/api'
+  : 'https://time-train.flychina2008.workers.dev/api';
 
 // Token storage
 let authToken: string | null = null;
@@ -30,7 +36,7 @@ async function request<T>(
   options: RequestInit = {},
   requireAuth: boolean = true
 ): Promise<T> {
-  const url = new URL(path, window.location.origin);
+  const url = new URL(API_BASE + path);
   const token = getAuthToken();
 
   const headers: Record<string, string> = {
