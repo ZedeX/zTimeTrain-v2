@@ -1,0 +1,11 @@
+name = "time-train"
+main = "worker/index.ts"
+compatibility_date = "2024-04-03"
+
+[vars]
+JWT_SECRET = "generate-a-strong-random-secret-here-at-least-32-characters"
+
+[[d1_databases]]
+binding = "zTimeTrain"
+database_name = "timetrain-db"
+database_id = "40a2f429-e894-41f1-8baf-be011f494cb7"
